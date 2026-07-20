@@ -1,0 +1,138 @@
+[
+  {
+    "id": "00635134",
+    "corpCode": "00635134",
+    "corpName": "CJ제일제당",
+    "stockCode": "097950",
+    "group": "CJ그룹",
+    "addedAt": "2026-07-19T23:52:48.227Z"
+  },
+  {
+    "id": "00113410",
+    "corpCode": "00113410",
+    "corpName": "CJ대한통운",
+    "stockCode": "000120",
+    "group": "CJ그룹",
+    "addedAt": "2026-07-20T01:00:00.000Z"
+  },
+  {
+    "id": "00265324",
+    "corpCode": "00265324",
+    "corpName": "CJ ENM",
+    "stockCode": "035760",
+    "group": "CJ그룹",
+    "addedAt": "2026-07-20T01:00:00.100Z"
+  },
+  {
+    "id": "00127954",
+    "corpCode": "00127954",
+    "corpName": "CJ프레시웨이",
+    "stockCode": "051500",
+    "group": "CJ그룹",
+    "addedAt": "2026-07-20T01:00:00.200Z"
+  },
+  {
+    "id": "00357120",
+    "corpCode": "00357120",
+    "corpName": "CJ푸드빌",
+    "stockCode": "",
+    "group": "CJ그룹",
+    "addedAt": "2026-07-20T01:00:00.300Z"
+  },
+  {
+    "id": "01514351",
+    "corpCode": "01514351",
+    "corpName": "티빙",
+    "stockCode": "",
+    "group": "CJ그룹",
+    "addedAt": "2026-07-20T01:00:00.400Z"
+  },
+  {
+    "id": "01423068",
+    "corpCode": "01423068",
+    "corpName": "씨제이올리브영",
+    "stockCode": "",
+    "group": "CJ그룹",
+    "addedAt": "2026-07-20T01:00:00.500Z"
+  },
+  {
+    "id": "00121941",
+    "corpCode": "00121941",
+    "corpName": "대상",
+    "stockCode": "001680",
+    "group": "대상",
+    "addedAt": "2026-07-20T00:25:04.910Z"
+  },
+  {
+    "id": "00481454",
+    "corpCode": "00481454",
+    "corpName": "금호타이어",
+    "stockCode": "073240",
+    "group": "금호타이어",
+    "addedAt": "2026-07-20T00:25:05.206Z"
+  },
+  {
+    "id": "00684714",
+    "corpCode": "00684714",
+    "corpName": "풍산",
+    "stockCode": "103140",
+    "group": "풍산",
+    "addedAt": "2026-07-20T00:25:05.474Z"
+  },
+  {
+    "id": "00114792",
+    "corpCode": "00114792",
+    "corpName": "동국홀딩스",
+    "stockCode": "001230",
+    "group": "동국계열",
+    "addedAt": "2026-07-20T00:25:05.720Z"
+  },
+  {
+    "id": "01765265",
+    "corpCode": "01765265",
+    "corpName": "동국제강",
+    "stockCode": "460860",
+    "group": "동국계열",
+    "addedAt": "2026-07-20T00:25:06.033Z"
+  },
+  {
+    "id": "01765256",
+    "corpCode": "01765256",
+    "corpName": "동국씨엠",
+    "stockCode": "460850",
+    "group": "동국계열",
+    "addedAt": "2026-07-20T00:25:06.313Z"
+  },
+  {
+    "id": "00415594",
+    "corpCode": "00415594",
+    "corpName": "동국S&C",
+    "stockCode": "100130",
+    "group": "동국계열",
+    "addedAt": "2026-07-20T00:25:06.591Z"
+  },
+  {
+    "id": "00300973",
+    "corpCode": "00300973",
+    "corpName": "도레이첨단소재",
+    "stockCode": "",
+    "group": "한국도레이첨단소재",
+    "addedAt": "2026-07-20T00:25:06.930Z"
+  },
+  {
+    "id": "00162300",
+    "corpCode": "00162300",
+    "corpName": "한국바스프",
+    "stockCode": "",
+    "group": "한국바스프",
+    "addedAt": "2026-07-20T00:25:07.250Z"
+  },
+  {
+    "id": "00309503",
+    "corpCode": "00309503",
+    "corpName": "한국항공우주",
+    "stockCode": "047810",
+    "group": "한국항공우주산업(KAI)",
+    "addedAt": "2026-07-20T00:25:07.470Z"
+  }
+]

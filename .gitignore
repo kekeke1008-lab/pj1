@@ -1,0 +1,5 @@
+node_modules/
+backend/.env
+backend/data/corpCode.cache.json
+frontend/dist/
+.DS_Store
