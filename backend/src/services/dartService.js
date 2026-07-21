@@ -4,6 +4,7 @@ const DART_BASE = "https://opendart.fss.or.kr/api";
 // 회사/업종마다 계정명 표기가 달라(예: 매출액 vs 수익(매출액)) 여러 별칭을 매핑한다.
 const ACCOUNT_MAP = {
   매출액: "revenue",
+  총매출액: "revenue",
   "수익(매출액)": "revenue",
   영업수익: "revenue",
   영업이익: "operatingProfit",

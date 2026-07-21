@@ -1,5 +1,13 @@
 [
   {
+    "id": "00148540",
+    "corpCode": "00148540",
+    "corpName": "CJ",
+    "stockCode": "001040",
+    "group": "CJ그룹",
+    "addedAt": "2026-07-21T00:00:00.000Z"
+  },
+  {
     "id": "00635134",
     "corpCode": "00635134",
     "corpName": "CJ제일제당",
