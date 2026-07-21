@@ -26,6 +26,8 @@ export const api = {
   getFinancialAnalysis: (corpCode, years = 5, quarters = 4) =>
     request(`/financials/${corpCode}/analysis?years=${years}&quarters=${quarters}`),
 
+  getCompanyProfile: (corpCode) => request(`/company-profile/${corpCode}`),
+
   getAllNews: () => request("/news/all"),
   getCompanyNews: (corpName, display = 20) =>
     request(`/news/${encodeURIComponent(corpName)}?display=${display}`),

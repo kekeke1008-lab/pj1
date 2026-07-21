@@ -8,6 +8,7 @@ import cookieParser from "cookie-parser";
 import { companiesRouter } from "./routes/companies.js";
 import { financialsRouter } from "./routes/financials.js";
 import { newsRouter } from "./routes/news.js";
+import { companyProfileRouter } from "./routes/companyProfile.js";
 import { createAuthMiddleware } from "./middleware/auth.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -55,6 +56,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/companies", companiesRouter({ dartApiKey }));
 app.use("/api/financials", financialsRouter({ dartApiKey }));
 app.use("/api/news", newsRouter({ naverClientId, naverClientSecret }));
+app.use("/api/company-profile", companyProfileRouter({ dartApiKey }));
 
 // 배포(프로덕션) 환경에서는 프론트엔드 빌드 결과물을 백엔드가 같이 서빙한다.
 // (로컬 개발 시에는 frontend/dist가 없으므로 이 블록은 자연히 건너뛴다.)

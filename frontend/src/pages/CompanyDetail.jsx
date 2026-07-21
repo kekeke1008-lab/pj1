@@ -5,6 +5,7 @@ import FinancialTrendChart from "../components/FinancialTrendChart.jsx";
 import FinancialTable from "../components/FinancialTable.jsx";
 import QuarterlyFinancialTable from "../components/QuarterlyFinancialTable.jsx";
 import FinancialAnalysis from "../components/FinancialAnalysis.jsx";
+import CompanyProfile from "../components/CompanyProfile.jsx";
 import NewsFeed from "../components/NewsFeed.jsx";
 import RefreshButton from "../components/RefreshButton.jsx";
 
@@ -19,6 +20,7 @@ export default function CompanyDetail() {
   const [company, setCompany] = useState(null);
   const [financials, setFinancials] = useState({ cfs: EMPTY_DIVISION, ofs: EMPTY_DIVISION });
   const [fsDiv, setFsDiv] = useState("cfs");
+  const [profile, setProfile] = useState(null);
   const [news, setNews] = useState([]);
   const [loadingNews, setLoadingNews] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -52,6 +54,13 @@ export default function CompanyDetail() {
         setFinancials(merged);
         // 연결재무제표가 있으면 기본으로 보여주고, 없으면 개별로 자동 전환한다.
         setFsDiv(hasValidData(merged.cfs.years) ? "cfs" : "ofs");
+      } catch (err) {
+        setError(err.message);
+      }
+
+      try {
+        const profileRes = await api.getCompanyProfile(corpCode);
+        setProfile(profileRes);
       } catch (err) {
         setError(err.message);
       }
@@ -151,6 +160,11 @@ export default function CompanyDetail() {
       <section className="rounded-lg border border-slate-200 bg-white p-4">
         <h2 className="mb-3 font-semibold text-slate-800">재무분석 (성장성·안정성·수익성)</h2>
         <FinancialAnalysis analysis={selected.analysis} />
+      </section>
+
+      <section className="rounded-lg border border-slate-200 bg-white p-4">
+        <h2 className="mb-3 font-semibold text-slate-800">기업정보 (지배구조·계열사·임원·약정사항)</h2>
+        <CompanyProfile profile={profile} />
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-4">
