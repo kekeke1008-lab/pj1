@@ -6,6 +6,7 @@ import FinancialTable from "../components/FinancialTable.jsx";
 import QuarterlyFinancialTable from "../components/QuarterlyFinancialTable.jsx";
 import FinancialAnalysis from "../components/FinancialAnalysis.jsx";
 import CompanyProfile from "../components/CompanyProfile.jsx";
+import PrintSummary from "../components/PrintSummary.jsx";
 import NewsFeed from "../components/NewsFeed.jsx";
 import RefreshButton from "../components/RefreshButton.jsx";
 
@@ -102,19 +103,27 @@ export default function CompanyDetail() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link to="/" className="text-sm text-blue-600 hover:underline">
-          ← 대시보드로
-        </Link>
-        <div className="mt-1 flex items-center gap-2">
-          <h1 className="text-xl font-bold">{company.corpName}</h1>
-          <span className="text-xs text-slate-400">{company.group}</span>
-          {company.stockCode && (
-            <span className="text-xs rounded bg-slate-100 px-1.5 py-0.5 text-slate-500">
-              {company.stockCode}
-            </span>
-          )}
+      <div className="flex items-start justify-between">
+        <div>
+          <Link to="/" className="text-sm text-blue-600 hover:underline">
+            ← 대시보드로
+          </Link>
+          <div className="mt-1 flex items-center gap-2">
+            <h1 className="text-xl font-bold">{company.corpName}</h1>
+            <span className="text-xs text-slate-400">{company.group}</span>
+            {company.stockCode && (
+              <span className="text-xs rounded bg-slate-100 px-1.5 py-0.5 text-slate-500">
+                {company.stockCode}
+              </span>
+            )}
+          </div>
         </div>
+        <button
+          onClick={() => window.print()}
+          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+        >
+          PDF 요약본
+        </button>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
@@ -176,6 +185,8 @@ export default function CompanyDetail() {
           <NewsFeed items={news} />
         </div>
       </section>
+
+      <PrintSummary company={company} fsDiv={fsDiv} selected={selected} profile={profile} news={news} />
     </div>
   );
 }
