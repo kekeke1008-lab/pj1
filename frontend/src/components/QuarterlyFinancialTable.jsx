@@ -7,6 +7,9 @@ const ROWS = [
   { key: "totalAssets", label: "자산총계" },
   { key: "totalLiabilities", label: "부채총계" },
   { key: "totalEquity", label: "자본총계" },
+  { key: "cashEquivalents", label: "현금성자산" },
+  { key: "grossBorrowings", label: "총차입금" },
+  { key: "netBorrowings", label: "순차입금" },
 ];
 
 export default function QuarterlyFinancialTable({ periods }) {
@@ -40,13 +43,25 @@ export default function QuarterlyFinancialTable({ periods }) {
                 ))}
               </tr>
             ))}
-            <tr>
+            <tr className="border-b border-slate-100">
               <td className="py-2 pr-4 text-slate-600">부채비율</td>
               {valid.map((p) => (
                 <td key={`${p.year}-${p.period}`} className="py-2 pr-4">
                   {formatPercent(
                     p.totalLiabilities !== undefined && p.totalEquity
                       ? (p.totalLiabilities / p.totalEquity) * 100
+                      : null
+                  )}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td className="py-2 pr-4 text-slate-600">차입금의존도</td>
+              {valid.map((p) => (
+                <td key={`${p.year}-${p.period}`} className="py-2 pr-4">
+                  {formatPercent(
+                    p.grossBorrowings !== undefined && p.totalAssets
+                      ? (p.grossBorrowings / p.totalAssets) * 100
                       : null
                   )}
                 </td>

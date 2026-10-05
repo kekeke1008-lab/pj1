@@ -7,6 +7,24 @@ function round1(value) {
   return value === null || value === undefined ? null : Math.round(value * 10) / 10;
 }
 
+/** 배수(예: 순차입금/EBITDA). 분모가 0 이하이면 의미가 없어 null. */
+function multiple(numerator, denominator) {
+  if (numerator === undefined || denominator === undefined || denominator <= 0) return null;
+  return round1(numerator / denominator);
+}
+
+/** 원 단위 금액을 "1조 2,336억원" 형태로 표기한다. */
+function fmtEok(won) {
+  if (won === undefined || won === null) return "-";
+  const sign = won < 0 ? "-" : "";
+  const eok = Math.abs(won) / 1e8;
+  const jo = Math.floor(eok / 10000);
+  const rest = Math.round(eok - jo * 10000);
+  return jo > 0
+    ? `${sign}${jo}조 ${rest.toLocaleString("ko-KR")}억원`
+    : `${sign}${Math.round(eok).toLocaleString("ko-KR")}억원`;
+}
+
 // 분기/반기 보고서의 순이익은 연초 누적치라 12개월치 이익이 아니다. 이를 그대로
 // 기말 자기자본/총자산(스톡, 연 단위 지표와 비교되는 값)과 나누면 ROE/ROA가
 // 실제보다 훨씬 낮게 나온다. 최근 분기 기준으로도 연 단위와 비교 가능하도록
@@ -32,6 +50,18 @@ export function computeRatios(period) {
     debtRatio: round1(pct(period.totalLiabilities, period.totalEquity)),
     equityRatio: round1(pct(period.totalEquity, period.totalAssets)),
     currentRatio: round1(pct(period.currentAssets, period.currentLiabilities)),
+    borrowingDependency: round1(pct(period.grossBorrowings, period.totalAssets)),
+    // EBITDA 기반 지표는 12개월치 EBITDA가 있는 연간 데이터에서만 계산된다.
+    ebitdaMargin: round1(pct(period.ebitda, period.revenue)),
+    debtToEbitda: multiple(period.grossBorrowings, period.ebitda),
+    netDebtToEbitda:
+      period.netBorrowings !== undefined && period.ebitda > 0
+        ? round1(period.netBorrowings / period.ebitda)
+        : null,
+    fcf:
+      period.operatingCF !== undefined && period.capex !== undefined
+        ? period.operatingCF - period.capex
+        : null,
     isAnnualized: months < 12,
   };
 }
@@ -115,7 +145,24 @@ function describeMargin(label, value) {
  * 절대적인 좋다/나쁘다 판단은 업종별 벤치마크 없이는 어려우므로,
  * 일반적으로 통용되는 경험적 기준(부채비율 200% 등)과 추세(전년比) 중심으로 서술한다.
  */
-export function generateNarrative({ years, quarters, ratios, growth }) {
+function describeBorrowingDependency(value) {
+  if (value === null) return null;
+  if (value < 30) return "낮은 편";
+  if (value < 50) return "보통 수준";
+  return "높은 편";
+}
+
+function describeNetDebtToEbitda(value) {
+  if (value === null) return null;
+  if (value < 0) return "순현금 상태";
+  if (value < 3) return "상환능력이 양호한 수준";
+  if (value < 5) return "보통 수준";
+  return "차입 상환 부담이 큰 편";
+}
+
+const x1 = (n) => (n === null || n === undefined ? "-" : n.toFixed(1));
+
+export function generateNarrative({ years, quarters, ratios, growth, basis, annual, annualRatios }) {
   const result = { growth: [], stability: [], profitability: [] };
 
   // 성장성
@@ -160,6 +207,30 @@ export function generateNarrative({ years, quarters, ratios, growth }) {
       : ratios.currentRatio;
     const current = describeCurrentRatio(currentRatioValue);
     if (current) result.stability.push(current);
+
+    // 차입금·EBITDA·현금흐름 (DART 재무제표에서 계산)
+    if (basis?.grossBorrowings !== undefined) {
+      const dep = describeBorrowingDependency(ratios.borrowingDependency);
+      result.stability.push(
+        `총차입금 ${fmtEok(basis.grossBorrowings)}, 순차입금 ${fmtEok(basis.netBorrowings)}` +
+          (ratios.borrowingDependency !== null
+            ? `으로 차입금의존도는 ${ratios.borrowingDependency}%(${dep})입니다.`
+            : "입니다.")
+      );
+    }
+    if (annual && annualRatios?.debtToEbitda !== null && annualRatios?.debtToEbitda !== undefined) {
+      const lev = describeNetDebtToEbitda(annualRatios.netDebtToEbitda);
+      result.stability.push(
+        `${annual.year}년 EBITDA ${fmtEok(annual.ebitda)} 기준 총차입금/EBITDA ${x1(annualRatios.debtToEbitda)}배, ` +
+          `순차입금/EBITDA ${x1(annualRatios.netDebtToEbitda)}배(${lev})입니다.`
+      );
+    }
+    if (annual && annualRatios?.fcf !== null && annualRatios?.fcf !== undefined) {
+      result.stability.push(
+        `${annual.year}년 영업활동현금흐름 ${fmtEok(annual.operatingCF)}, Capex ${fmtEok(annual.capex)}이고 ` +
+          `잉여현금흐름(FCF)은 ${fmtEok(annualRatios.fcf)}${annualRatios.fcf < 0 ? "(마이너스, 외부 조달 의존 가능성)" : ""}입니다.`
+      );
+    }
   } else {
     result.stability.push("안정성을 분석할 재무상태표 데이터가 부족합니다.");
   }
@@ -190,13 +261,37 @@ export function analyzeFinancials({ years, quarters }) {
 
   const ratios = latestPeriod ? computeRatios(latestPeriod) : null;
   const growth = computeGrowth(years);
-  const narrative = generateNarrative({ years, quarters, ratios, growth });
+
+  // EBITDA·현금흐름 기반 지표는 12개월 기준이어야 의미가 있어 가장 최근 연간 데이터로 계산한다.
+  const annual = validYears.slice(-1)[0] ?? null;
+  const annualRatios = annual ? computeRatios(annual) : null;
+  const narrative = generateNarrative({
+    years,
+    quarters,
+    ratios,
+    growth,
+    basis: latestPeriod,
+    annual,
+    annualRatios,
+  });
 
   return {
     basisYear: latestPeriod?.year ?? null,
     basisPeriod: latestPeriod?.period ?? "사업보고서(연간)",
     ratios,
     growth,
+    annual: annual
+      ? {
+          year: annual.year,
+          ebitda: annual.ebitda ?? null,
+          ebitdaMargin: annualRatios.ebitdaMargin,
+          debtToEbitda: annualRatios.debtToEbitda,
+          netDebtToEbitda: annualRatios.netDebtToEbitda,
+          operatingCF: annual.operatingCF ?? null,
+          capex: annual.capex ?? null,
+          fcf: annualRatios.fcf,
+        }
+      : null,
     narrative,
   };
 }

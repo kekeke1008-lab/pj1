@@ -1,3 +1,5 @@
+import { extractDerivedMetrics } from "./dartDerived.js";
+
 const DART_BASE = "https://opendart.fss.or.kr/api";
 
 // 사업보고서(연간) 계정과목 라벨 -> 우리 화면에서 쓰는 필드명
@@ -18,6 +20,22 @@ const ACCOUNT_MAP = {
   유동부채: "currentLiabilities",
 };
 
+// 계정명 매핑에 걸리지 않을 때를 위한 표준 계정코드 보완 매핑.
+// (예: 분기·반기 보고서는 당기순이익이 "분기순이익"/"반기순이익"으로 표기되지만 코드는 동일)
+const ACCOUNT_ID_MAP = {
+  "ifrs-full_Revenue": "revenue",
+  dart_OperatingIncomeLoss: "operatingProfit",
+  "ifrs-full_ProfitLoss": "netIncome",
+  "ifrs-full_Assets": "totalAssets",
+  "ifrs-full_Liabilities": "totalLiabilities",
+  "ifrs-full_Equity": "totalEquity",
+  "ifrs-full_CurrentAssets": "currentAssets",
+  "ifrs-full_CurrentLiabilities": "currentLiabilities",
+  // 의견서 재무표에 쓰이는 항목(유형자산, 자본금). 이름이 다양해 코드로만 매칭한다.
+  "ifrs-full_PropertyPlantAndEquipment": "propertyPlantEquipment",
+  "ifrs-full_IssuedCapital": "capitalStock",
+};
+
 // 재무상태표(BS) 항목과 손익 항목(IS/CIS)을 구분해서 매칭한다.
 // 같은 account_nm이 자본변동표(SCE) 등 다른 표에도 중복 등장해 다른 금액을
 // 갖는 경우가 있어, 표 종류를 제한하지 않으면 엉뚱한 값을 집어올 수 있다.
@@ -27,6 +45,8 @@ const BS_FIELDS = new Set([
   "totalEquity",
   "currentAssets",
   "currentLiabilities",
+  "propertyPlantEquipment",
+  "capitalStock",
 ]);
 const INCOME_FIELDS = new Set(["revenue", "operatingProfit", "netIncome"]);
 const INCOME_SJ_PRIORITY = { IS: 0, CIS: 1 };
@@ -49,11 +69,15 @@ async function callDart(endpoint, params) {
   return json;
 }
 
-function extractMetrics(rows) {
+function extractMetrics(rows, includeCashFlow = true) {
+  return { ...extractBasicMetrics(rows), ...extractDerivedMetrics(rows, includeCashFlow) };
+}
+
+function extractBasicMetrics(rows) {
   const picked = {}; // field -> { sjDiv, amount }
 
   for (const row of rows) {
-    const field = ACCOUNT_MAP[row.account_nm?.trim()];
+    const field = ACCOUNT_MAP[row.account_nm?.trim()] ?? ACCOUNT_ID_MAP[row.account_id];
     if (!field) continue;
 
     const sjDiv = row.sj_div;
@@ -171,7 +195,8 @@ export async function getRecentPeriodsBoth(apiKey, corpCode, count = 4) {
       }
       if (rows.length === 0) continue; // 아직 제출되지 않은 기간이거나 해당 재무제표 미작성
 
-      const metrics = extractMetrics(rows);
+      // 분기·반기 현금흐름은 누적 기준이라 연간과 비교가 어려워 제외하고, 시점 잔액(차입금·현금)만 쓴다.
+      const metrics = extractMetrics(rows, false);
       bucket.push({
         year: period.year,
         period: period.label,

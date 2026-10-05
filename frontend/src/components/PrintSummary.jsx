@@ -1,4 +1,4 @@
-import { formatKRW, formatPercent } from "../utils/format.js";
+import { formatKRW, formatPercent, formatMultiple } from "../utils/format.js";
 
 function truncate(text, max = 160) {
   if (!text) return "";
@@ -54,6 +54,10 @@ export default function PrintSummary({ company, fsDiv, selected, profile, news }
                   ["매출액", "revenue"],
                   ["영업이익", "operatingProfit"],
                   ["당기순이익", "netIncome"],
+                  ["총차입금", "grossBorrowings"],
+                  ["순차입금", "netBorrowings"],
+                  ["EBITDA", "ebitda"],
+                  ["영업활동 현금흐름", "operatingCF"],
                 ].map(([label, key]) => (
                   <tr key={key}>
                     <td className="border border-gray-400 px-2 py-1">{label}</td>
@@ -76,6 +80,28 @@ export default function PrintSummary({ company, fsDiv, selected, profile, news }
                     </td>
                   ))}
                 </tr>
+                <tr>
+                  <td className="border border-gray-400 px-2 py-1">차입금의존도</td>
+                  {validYears.map((y) => (
+                    <td key={y.year} className="border border-gray-400 px-2 py-1">
+                      {formatPercent(
+                        y.grossBorrowings !== undefined && y.totalAssets
+                          ? (y.grossBorrowings / y.totalAssets) * 100
+                          : null
+                      )}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="border border-gray-400 px-2 py-1">순차입금/EBITDA</td>
+                  {validYears.map((y) => (
+                    <td key={y.year} className="border border-gray-400 px-2 py-1">
+                      {formatMultiple(
+                        y.netBorrowings !== undefined && y.ebitda > 0 ? y.netBorrowings / y.ebitda : null
+                      )}
+                    </td>
+                  ))}
+                </tr>
               </tbody>
             </table>
           )}
@@ -92,6 +118,9 @@ export default function PrintSummary({ company, fsDiv, selected, profile, news }
               <li>{narrative.growth?.[0]}</li>
               <li>{narrative.stability?.[0]}</li>
               <li>{narrative.stability?.[2]}</li>
+              {(narrative.stability ?? []).slice(3).map((line, idx) => (
+                <li key={`st-${idx}`}>{line}</li>
+              ))}
               <li>{narrative.profitability?.[0]}</li>
               <li>{narrative.profitability?.[1]}</li>
             </ul>
