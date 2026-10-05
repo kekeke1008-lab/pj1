@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { getAnnualFinancialsBoth, getRecentPeriodsBoth } from "../services/dartService.js";
 import { analyzeFinancials } from "../services/financialAnalysis.js";
+import { getDepreciationByYear, attachEbitda } from "../services/dartEbitdaService.js";
 
 // 재무제표는 실시간으로 바뀌는 데이터가 아니라(분기/연 단위로만 갱신) 매 페이지 로딩마다
 // DART를 다시 조회할 필요가 없다. 대시보드에서 거래처 10여 곳을 한번에 조회하면 DART
@@ -36,6 +37,15 @@ export function financialsRouter({ dartApiKey }) {
     return Array.from({ length: count }, (_, i) => currentYear - 1 - i).reverse();
   }
 
+  // EBITDA는 사업보고서 원문(주석)에서 감가상각비를 읽어야 해서 첫 조회가 느리다(이후 24시간 캐시).
+  // 못 가져오면 EBITDA만 비우고 나머지 재무 데이터는 그대로 돌려준다.
+  async function annualWithEbitda(corpCode, cfs, ofs) {
+    const da = await getDepreciationByYear(dartApiKey, corpCode, new Date().getFullYear() - 1).catch(
+      () => ({ CFS: {}, OFS: {} })
+    );
+    return { cfs: attachEbitda(cfs, da.CFS), ofs: attachEbitda(ofs, da.OFS) };
+  }
+
   router.get("/:corpCode/quarterly", async (req, res) => {
     if (!ensureKey(res)) return;
     const { corpCode } = req.params;
@@ -58,15 +68,15 @@ export function financialsRouter({ dartApiKey }) {
     const quarterCount = Math.min(Number(req.query.quarters) || 4, 8);
 
     try {
-      const [{ cfs: cfsYears, ofs: ofsYears }, { cfs: cfsQuarters, ofs: ofsQuarters }] =
-        await Promise.all([
-          cached(`annual:${corpCode}:${yearsCount}`, () =>
-            getAnnualFinancialsBoth(dartApiKey, corpCode, annualYears(yearsCount))
-          ),
-          cached(`quarterly:${corpCode}:${quarterCount}`, () =>
-            getRecentPeriodsBoth(dartApiKey, corpCode, quarterCount)
-          ),
-        ]);
+      const [annual, { cfs: cfsQuarters, ofs: ofsQuarters }] = await Promise.all([
+        cached(`annual:${corpCode}:${yearsCount}`, () =>
+          getAnnualFinancialsBoth(dartApiKey, corpCode, annualYears(yearsCount))
+        ),
+        cached(`quarterly:${corpCode}:${quarterCount}`, () =>
+          getRecentPeriodsBoth(dartApiKey, corpCode, quarterCount)
+        ),
+      ]);
+      const { cfs: cfsYears, ofs: ofsYears } = await annualWithEbitda(corpCode, annual.cfs, annual.ofs);
 
       res.json({
         corpCode,
@@ -84,9 +94,12 @@ export function financialsRouter({ dartApiKey }) {
     const yearsCount = Math.min(Number(req.query.years) || 3, 5);
 
     try {
-      const { cfs, ofs } = await cached(`annual:${corpCode}:${yearsCount}`, () =>
+      let { cfs, ofs } = await cached(`annual:${corpCode}:${yearsCount}`, () =>
         getAnnualFinancialsBoth(dartApiKey, corpCode, annualYears(yearsCount))
       );
+      if (req.query.withEbitda === "1") {
+        ({ cfs, ofs } = await annualWithEbitda(corpCode, cfs, ofs));
+      }
       res.json({ corpCode, cfs: { years: cfs }, ofs: { years: ofs } });
     } catch (err) {
       res.status(502).json({ error: err.message });

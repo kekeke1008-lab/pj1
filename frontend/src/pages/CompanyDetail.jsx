@@ -35,7 +35,7 @@ export default function CompanyDetail() {
 
       try {
         const [annualRes, quarterlyRes, analysisRes] = await Promise.all([
-          api.getFinancials(corpCode, 5),
+          api.getFinancials(corpCode, 5, true),
           api.getQuarterlyFinancials(corpCode, 4),
           api.getFinancialAnalysis(corpCode, 5, 4),
         ]);

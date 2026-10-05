@@ -16,6 +16,12 @@ export function formatPercent(value, digits = 1) {
   return `${value.toFixed(digits)}%`;
 }
 
+/** 배수(순차입금/EBITDA 등). 값이 없거나 계산 불가면 "-". */
+export function formatMultiple(value, digits = 1) {
+  if (value === undefined || value === null || Number.isNaN(value)) return "-";
+  return `${value.toFixed(digits)}배`;
+}
+
 export function yoyChange(curr, prev) {
   if (curr === undefined || prev === undefined || prev === 0) return null;
   return ((curr - prev) / Math.abs(prev)) * 100;
